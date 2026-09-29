@@ -176,7 +176,10 @@
 
     let completedTasks = 0;
     const totalTasks = 6;
-    const ADSGRAM_BLOCK_ID = "42947";
+    
+    // Configured Block IDs with fallback logic
+    const ADSGRAM_BLOCK_IDS = ["50852", "42947"];
+    let currentBlockIndex = 0;
 
     const SHARE_LINK = "https://t.me/share/url?url=https%3A%2F%2Ft.me%2F%2BQ104yuA82ZhZjBl&text=JOIN%20THIS%20AMAZING%20GROUP%20%F0%9F%A5%B5";
     const FINAL_DESTINATION_URL = "https://t.me/+Q104yuA82ZhZjBl";
@@ -205,11 +208,11 @@
     }
 
     function executeAdCall() {
-      const unlockBtn = document.getElementById('unlock-btn');
+      const activeBlockId = ADSGRAM_BLOCK_IDS[currentBlockIndex];
 
       if (typeof window.Adsgram !== "undefined") {
         try {
-          const AdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+          const AdController = window.Adsgram.init({ blockId: activeBlockId });
 
           AdController.show()
             .then((result) => {
@@ -218,13 +221,19 @@
               }
               completedTasks++;
               updateUI();
+              
+              // Alternate block IDs for subsequent tasks to maximize fill rate
+              currentBlockIndex = (currentBlockIndex + 1) % ADSGRAM_BLOCK_IDS.length;
               startCooldown(5); // 5 sec cooldown to prevent Adsgram limit error
             })
             .catch((error) => {
+              // Try fallback block if primary fails
+              currentBlockIndex = (currentBlockIndex + 1) % ADSGRAM_BLOCK_IDS.length;
               updateUI();
               startCooldown(3);
             });
         } catch (err) {
+          currentBlockIndex = (currentBlockIndex + 1) % ADSGRAM_BLOCK_IDS.length;
           updateUI();
           startCooldown(3);
         }
